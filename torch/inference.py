@@ -1,8 +1,6 @@
 from __future__ import print_function
 import argparse
-
 import sys
-import base64
 
 from PIL import Image
 
@@ -102,17 +100,15 @@ def main():
     # Image OPEN
     # test_image = transform(Image.open(args.test_path)).to(device).unsqueeze(dim=0)
 
-    image64 = sys.stdin.read()
-    image64decode = base64.b64decode(image64)
     
-    test_image = transform(Image.open(io.BytesIO(image64decode))).to(device).unsqueeze(dim=0)
+    test_image = transform(sys.stdin.read()).to(device).unsqueeze(dim=0)
 
     model = Net().to(device)
     checkpoint = torch.load('cnn_v5.pt')
     model.load_state_dict(checkpoint)
     model.eval()
 
-    prediction = model(test_image).argmax()
+    prediction = model(test_image).argmax().Item()+1
     
     # print (f'The prediction is: {prediction}')
     # print (f'Inference time: {time.time()-check}')

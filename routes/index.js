@@ -17,12 +17,7 @@ const upload = multer({
     }),
   });
 const PythonShell = require('python-shell');
-const options = {
-    mode : 'json',
-    pythonOptions: ['-u'],
-    pythonPath : '../torch'
 
-};
 
 router.post('/api/register', function(req, res){
     console.log('/register');
@@ -150,29 +145,37 @@ router.post('/api/images/post/:uid', upload.single('image'),(req,res)=>{
     });
 });
 
-router.post('/api/torch/inference', upload.single('image'),(req,res)=>{
-    console.log('inference image');
+
+
+router.post('/api/torch/inference/:path', upload.single("image"),(req,res)=>{
+    console.log('/torch/inference');
     var image = req.file;
-    var imageStr = image.toString("base64");
+    console.log(req.file.filename);
     console.log(__dirname);
 
-    infpyshell = new PythonShell.PythonShell(path.join(__dirname, '..', 'torch', 'inference.py'));
+    infpyshell = new PythonShell.PythonShell(path.join(__dirname, '..', 'torch', 'inference.py'), {pythonOptions: ['-u']});
 
-    infpyshell.send(imageStr);
+    infpyshell.send(path.join(__dirname, '..', 'images', req.file.filename));
 
-    infpyshell.on('result', function(result){
-        res.json(result);
+    infpyshell.on("message", result =>{
+        // if(err){
+        //     res.status(500).json({error: err});
+        //     console.log('error occured after run ');
+        //     console.log(err);
+        // }
         console.log(result);
+        res.json(result);
     });
 
     infpyshell.end(err => {
         if(err){
             res.status(500).json({error: err});
+            console.log('error occured');
             console.log(err);
         }
     });
-    console.log('inference done');
 
 });
+
 
 module.exports = router;
